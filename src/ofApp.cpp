@@ -7,22 +7,15 @@
 #include "LcBasic.h"
 #include "HandDetector.hpp"
 
+#include "ofxCv.h"
+
 using namespace std;
 using namespace cv;
 
 //--------------------------------------------------------------
 void ofApp::setup(){
     
-    TRAIN_MODEL = 0;           //1 if you are training the models, 0 if you are running the program to predict
-    TEST_MODEL  = 1;           //0 if you are training the models, 1 if you are running the program to predict
-    
     target_width = 320;			// for resizing the input (small is faster)
-    
-    // maximum number of image masks that you will use
-    // must have the masks prepared in advance
-    // only used at training time
-    num_models_to_train = 16;
-    
     
     // number of models used to compute a single pixel response
     // must be less than the number of training models
@@ -36,12 +29,11 @@ void ofApp::setup(){
     step_size = 3;
     
     // Assumes a certain file structure e.g., /root/img/basename/00000000.jpg
-    root = "/Users/kyle/Documents/openFrameworks/apps/apps/handtrack-for-ofx/";       //replace with path to your Xcode project
-    basename = "";
-    img_prefix		= root + "img"		+ basename + "/";			// color images
-    msk_prefix		= root + "mask"     + basename + "/";			// binary masks
-    model_prefix		= root + "models"	+ basename + "/";			// output path for learned models
-    globfeat_prefix  = root + "globfeat" + basename + "/";			// output path for color histograms
+    model_prefix = ofToDataPath("models"); // output path for learned models
+    globfeat_prefix = ofToDataPath("globfeats"); // output path for color histograms
+    
+    ofLog() << model_prefix;
+    ofLog() << globfeat_prefix;
     
     // types of features to use (you will over-fit if you do not have enough data)
     // r: RGB (5x5 patch)
@@ -54,165 +46,120 @@ void ofApp::setup(){
     // h: HOG descriptor
     string feature_set = "rvl";
     
-    if(TRAIN_MODEL)
-    {
-        cout << "Training...\n";
-        HandDetector hd;
-        hd.loadMaskFilenames(msk_prefix);
-        hd.trainModels(basename, img_prefix, msk_prefix,model_prefix,globfeat_prefix,feature_set,num_models_to_train,target_width);
-        cout << "Done Training...\n";
-    }
+    hd.testInitialize(model_prefix,globfeat_prefix,feature_set,num_models_to_average,target_width);
     
-    if(TEST_MODEL)
-    {
-        cout << "Testing...\n";
-        string vid_filename		= root + "vid/"		+ basename + ".avi";
-
-        hd.testInitialize(model_prefix,globfeat_prefix,feature_set,num_models_to_average,target_width);
-
-        cap = VideoCapture(0);
-        
-
-    }
+    cap.setup(1280, 720);
     
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-
-    
-    
-    
-    if(TEST_MODEL)
-    {
-               
-        while(1)
+    cap.update();
+    if(cap.isFrameNew()) {
+        
+        Mat im;
+        ofxCv::convertColor(cap, im, CV_RGB2BGR);
+        
+        hd.test(im,num_models_to_average,step_size);
+        
+        // Different ways to visualize the results
+        // hd._response_img (float probabilities in a matrix)
+        // hd._blur (blurred version of _response_img)
+        
+        
+        int SHOW_RAW_PROBABILITY = 1;
+        if(SHOW_RAW_PROBABILITY)
         {
-            cap >>(im);
+            Mat raw_prob;
+            hd.colormap(hd._response_img,raw_prob,0);
+            imshow("probability",raw_prob);	// color map of probability
+        }
+        
+        int SHOW_BLUR_PROBABILITY = 1;
+        if(SHOW_BLUR_PROBABILITY)
+        {
+            Mat pp_res;
+            hd.postprocess(hd._response_img);
+            imshow("blurred",hd._blu);		// colormap of blurred probability
+        }
+        
+        int SHOW_BINARY_CONTOUR = 1;
+        if(SHOW_BINARY_CONTOUR)
+        {
+            Mat pp_contour = hd.postprocess(hd._response_img);		// binary contour
+            hd.colormap(pp_contour,pp_contour,0);					// colormap of contour
+            imshow("contour",pp_contour);
+        }
+        
+        int SHOW_RES_ALPHA_BLEND = 1;
+        if(SHOW_RES_ALPHA_BLEND)
+        {
+            Mat pp_res = hd.postprocess(hd._response_img);
+            hd.colormap(pp_res,pp_res,0);
+            resize(pp_res,pp_res,im.size(),0,0,INTER_LINEAR);
+            addWeighted(im,0.7,pp_res,0.3,0,pp_res);				// alpha blend of image and binary contour
+            imshow("alpha_res",pp_res);
             
-            if(!im.data) break;
-            //cap >> im; if(!im.data) break; // skip frames with these
-            //cap >> im; if(!im.data) break;
-            //cap >> im; if(!im.data) break;
-            
-            hd.test(im,num_models_to_average,step_size);
-            
-            
-            // Different ways to visualize the results
-            // hd._response_img (float probabilities in a matrix)
-            // hd._blur (blurred version of _response_img)
-            
-            
-            int SHOW_RAW_PROBABILITY = 1;
-            if(SHOW_RAW_PROBABILITY)
-            {
-                Mat raw_prob;
-                hd.colormap(hd._response_img,raw_prob,0);
-                imshow("probability",raw_prob);	// color map of probability
-            }
-            
-            int SHOW_BLUR_PROBABILITY = 1;
-            if(SHOW_BLUR_PROBABILITY)
-            {
-                Mat pp_res;
-                hd.postprocess(hd._response_img);
-                imshow("blurred",hd._blu);		// colormap of blurred probability
-            }
-            
-            int SHOW_BINARY_CONTOUR = 1;
-            if(SHOW_BINARY_CONTOUR)
-            {
-                Mat pp_contour = hd.postprocess(hd._response_img);		// binary contour
-                hd.colormap(pp_contour,pp_contour,0);					// colormap of contour
-                imshow("contour",pp_contour);
-            }
-            
-            int SHOW_RES_ALPHA_BLEND = 1;
-            if(SHOW_RES_ALPHA_BLEND)
-            {
-                Mat pp_res = hd.postprocess(hd._response_img);
-                hd.colormap(pp_res,pp_res,0);
-                resize(pp_res,pp_res,im.size(),0,0,INTER_LINEAR);
-                addWeighted(im,0.7,pp_res,0.3,0,pp_res);				// alpha blend of image and binary contour
-                imshow("alpha_res",pp_res);
-                
-            }
-            
-            
-            /*
-             if(!avi.isOpened())
-             {
-             stringstream ss;
-             ss.str("");
-             ss << root + "/vis/" + basename + "_skin.avi";
-             int fourcc = avi.fourcc('F','L','V','1');
-             avi.open(ss.str(),fourcc,30,ppr.size(),true);
-             }
-             avi << ppr;
-             */
-            
-            
-            waitKey(1);
         }
     }
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseEntered(int x, int y){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseExited(int x, int y){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::gotMessage(ofMessage msg){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+    
 }

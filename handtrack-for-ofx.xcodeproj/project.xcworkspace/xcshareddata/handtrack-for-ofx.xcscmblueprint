@@ -8,7 +8,7 @@
     "37526DA425E5430474A14FBFA1BC4525160B5FC1" : 9223372036854775807,
     "2DE9C8846D9375EAACFABA8963120E8E7719BAF5" : 9223372036854775807
   },
-  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "F80D2959-2086-4D8E-806F-288AC11C806D",
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "1BD3DB45-42EE-4DEB-AE88-937AB1FBA67D",
   "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
     "B9777DB510C09ECC9ACA07AD7CC717DA1E70702B" : "handtrack-for-ofx\/",
     "37526DA425E5430474A14FBFA1BC4525160B5FC1" : "..\/..\/addons\/ofxCv",
@@ -29,7 +29,7 @@
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "37526DA425E5430474A14FBFA1BC4525160B5FC1"
     },
     {
-      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/cmuartfab\/handtrack-for-ofx.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "github.com:cmuartfab\/handtrack-for-ofx.git",
       "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
       "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "B9777DB510C09ECC9ACA07AD7CC717DA1E70702B"
     }
