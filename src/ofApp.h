@@ -2,6 +2,14 @@
 
 #include "ofMain.h"
 
+#include <opencv2/opencv.hpp>
+
+#include "FeatureComputer.hpp"
+#include "Classifier.h"
+#include "LcBasic.h"
+#include "HandDetector.hpp"
+
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -62,5 +70,17 @@ class ofApp : public ofBaseApp{
         // u: SURF descriptor
         // h: HOG descriptor
         string feature_set;
+    
+    
+        string vid_filename;
+    
+        HandDetector hd;
+        
+    
+
+        Mat im;
+        Mat ppr;
+    
+        VideoWriter avi;
     
 };

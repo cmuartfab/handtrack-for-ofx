@@ -13,8 +13,8 @@ using namespace cv;
 //--------------------------------------------------------------
 void ofApp::setup(){
     
-    TRAIN_MODEL = 0;           //1 if you are training the models, 0 if you are running the program to predict
-    TEST_MODEL  = 1;           //0 if you are training the models, 1 if you are running the program to predict
+    TRAIN_MODEL = 1;           //1 if you are training the models, 0 if you are running the program to predict
+    TEST_MODEL  = 0;           //0 if you are training the models, 1 if you are running the program to predict
     
     target_width = 320;			// for resizing the input (small is faster)
     
@@ -36,7 +36,7 @@ void ofApp::setup(){
     step_size = 3;
     
     // Assumes a certain file structure e.g., /root/img/basename/00000000.jpg
-    root = "/Users/ali/Documents/Development/of_v0.9.4_osx_release/apps/myApps/handtrack/";       //replace with path to your Xcode project
+    root = "/Users/ali/Documents/Development/of_v0.9.4_osx_release/apps/myApps/handtrack-for-ofx/";       //replace with path to your Xcode project
     basename = "";
     img_prefix		= root + "img"		+ basename + "/";			// color images
     msk_prefix		= root + "mask"     + basename + "/";			// binary masks
@@ -54,10 +54,6 @@ void ofApp::setup(){
     // h: HOG descriptor
     string feature_set = "rvl";
     
-}
-
-//--------------------------------------------------------------
-void ofApp::update(){
     if(TRAIN_MODEL)
     {
         cout << "Training...\n";
@@ -67,22 +63,29 @@ void ofApp::update(){
         cout << "Done Training...\n";
     }
     
-    
-    
     if(TEST_MODEL)
     {
         cout << "Testing...\n";
         string vid_filename		= root + "vid/"		+ basename + ".avi";
-        
-        HandDetector hd;
+
         hd.testInitialize(model_prefix,globfeat_prefix,feature_set,num_models_to_average,target_width);
-        
+
         VideoCapture cap(0);
-        Mat im;
-        Mat ppr;
         
-        VideoWriter avi;
-        
+
+    }
+    
+}
+
+//--------------------------------------------------------------
+void ofApp::update(){
+
+    
+    
+    
+    if(TEST_MODEL)
+    {
+               
         while(1)
         {
             cap >>(im);
