@@ -29,6 +29,7 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+        VideoCapture cap;
     
         bool TRAIN_MODEL;           //1 if you are training the models, 0 if you are running the program to predict
         bool TEST_MODEL;           //0 if you are training the models, 1 if you are running the program to predict
